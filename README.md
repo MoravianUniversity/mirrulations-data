@@ -231,7 +231,7 @@ We will use AWS Glue to extract the comments from the `DEA-2024-0059` docket, tr
 
 * Add a "S3 bucket" from the "Targets" menu
 
-  ![To S3](graphics/toS3.png)
+  ![To S3](graphics/ToS3.png)
   
 * Configure this node to save the data as JSON in your S3 bucket:
 
