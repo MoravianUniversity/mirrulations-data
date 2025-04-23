@@ -1,117 +1,143 @@
 ## Overview
 
-The data from [regulations.gov](https://www.regulations.gov/) is organized into *dockets*.  Each docket contains all *documents* and *comments* for one proposed rule.  For each docket, document, and comment there is one JSON file containing a variety of information about the element.  The documents and comments can contain attachments (typically `.doc`, `.docx`, or `.pdf` files) that are linked as a field in the JSON file.
+The data from [regulations.gov](https://www.regulations.gov/) is split into two broad categories:
 
-All elements are identified by an ID. A docket id is made up of:
+- **Raw Data**: The original data obtained from the source, organized by agency and docket ID, separating binary and textual content.
+- **Derived Data**: Processed outputs derived from the raw data using future tools like AI models, entity extractors, and summarization pipelines.
 
-* agency abbreviation
-* year of docket
-* docket number
+Each element (docket, document, comment) is uniquely identified, and attachments (usually `.pdf`, `.doc`, or `.docx`) are stored alongside extracted or structured text versions.
 
-Document IDs and comment IDs are made up of the docket ID followed by a unique number.
+---
 
-## Structure of the Data
+## Raw Data Structure
 
-The data is organized by agency and docket.  Within each docket, the binary data (attachments) are stored separately from the text data so that users can easily download only the text data.
-
-The structure separates the results from multiple text extraction tools.
+The `raw-data` directory contains the original source data, separated by agency and docket ID.
 
 ```
-data
+raw-data
 └── <agency>
     └── <docket id>
         ├── binary-<docket id>
         │   ├── comments_attachments
-        │   │   ├── <comment id>_attachement_<counter>.<extension>
+        │   │   ├── <comment id>_attachment_<counter>.<extension>
         │   │   └── ...
-        │   ├── documents_attachments
-        │   │   ├── <document id>_attachement_<counter>.<extension>
-        │   │   └── ...
+        │   └── documents_attachments
+        │       ├── <document id>_attachment_<counter>.<extension>
+        │       └── ...
         └── text-<docket id>
             ├── comments
             │   ├── <comment id>.json
-            │   └── ...
-            ├── comments_extracted_text
-            │   ├── <tool name>
-            │   |   ├── <comment id>_attachment_<counter>_extracted.txt
-            │   |   └── ...
-            |   └─ ... <other tools>
             ├── docket
             │   ├── <docket id>.json
-            |   └── ...
             ├── documents
             │   ├── <document id>.json
             │   ├── <document id>_content.htm
-            │   └── ...
-            └── documents_extracted_text
-                ├── <tool name>
-                |   ├── <document id>_content_extracted.txt
-                |   └── ...
-                └─ ... <other tools>
-```                    
-
-## Example
-
-The `USTR` contains a docket id `USTR-2015-0010` that holds 1 docket, 4 documents, and 4 comments.  Each of the comments has an attachment, and each of the documents have one or more attachments.  The tool `pikepdf` was used to extract text from these attachments.
-
-This data would be stored in the structure as follows:
-
-```
-USTR
-└── USTR-2015-0010
-    ├── binary-USTR-2015-0010
-    │   ├── comments_attachments
-    │   │   ├── USTR-2015-0010-0002_attachment_1.pdf
-    │   │   ├── USTR-2015-0010-0003_attachment_1.pdf
-    │   │   ├── USTR-2015-0010-0004_attachment_1.pdf
-    │   │   └── USTR-2015-0010-0005_attachment_1.pdf
-    │   └── documents_attachments
-    │       ├── USTR-2015-0010-0001_content.pdf
-    │       ├── USTR-2015-0010-0015_content.pdf
-    │       ├── USTR-2015-0010-0016_content.doc
-    │       ├── USTR-2015-0010-0016_content.pdf
-    │       ├── USTR-2015-0010-0017_content.doc
-    │       └── USTR-2015-0010-0017_content.pdf
-    └── text-USTR-2015-0010
-        ├── comments
-        │   ├── USTR-2015-0010-0002.json
-        │   ├── USTR-2015-0010-0003.json
-        │   ├── USTR-2015-0010-0004.json
-        │   └── USTR-2015-0010-0005.json
-        ├── comments_extracted_text
-        │   └── pikepdf
-        │       ├── USTR-2015-0010-0002_attachment_1_extracted.txt
-        │       ├── USTR-2015-0010-0003_attachment_1_extracted.txt
-        │       ├── USTR-2015-0010-0004_attachment_1_extracted.txt
-        │       └── USTR-2015-0010-0005_attachment_1_extracted.txt
-        ├── docket
-        │   └── USTR-2015-0010.json
-        ├── documents
-        │   ├── USTR-2015-0010-0001.json
-        │   ├── USTR-2015-0010-0001_content.htm
-        │   ├── USTR-2015-0010-0015.json
-        │   ├── USTR-2015-0010-0016.json
-        │   └── USTR-2015-0010-0017.json
-        └── documents_extracted_text
-            └── pikepdf
-                ├── USTR-2015-0010-0015_content_extracted.txt
-                ├── USTR-2015-0010-0016_content_extracted.txt
-                └── USTR-2015-0010-0017_content_extracted.txt
 ```
 
-## Explanation
+---
 
-* At the root level, there is a folder, `USTR` for the agency.
-  * In the agency folder there is a folder for the docket ID, `USTR-2015-0010`.
-    * In the docket folder there are two subfolders to separate the binary data and text data called `binary-USTR-2015-0010` and `text-USTR-2015-0010`.
-    * The `binary-USTR-2015-0010` folder contains two subdirectories, `comments_attachments`, and `document_attachments` to hold the attachments for comments and documents, respectively.
-      * The `comments_attachments` folder contains each attachment file named using the comment id followed by the attachment number, such as `USTR-2015-0010-0002_attachment_1.pdf`.
-      * The `documents_attachments` folder contains each attachment file named using the document id followed by the word `content`, such as `USTR-2015-0010-0001_content.pdf` and `USTR-2015-0010-0016_content.doc`.
-    * The `text-USTR-2015-0010` folder contains five subdirectories: `docket`, `documents`, `comments`, `comments_extracted_text`, and `documents_extracted_text`.
-      * The `comments` folder contains a JSON file for each comment, named with the comment ID for each comment, such as `USTR-2015-0010-0002.json`.
-      * The `comments_extracted_text` folder contains a subdirectory for each extraction tool used. In this example, only the tool  `pikepdf` was used.
-          * The `pikepdf` directory contains one text file for each attachment with extracted text.  These files are named with the comment id, attachment number, and the word `extracted` such as `USTR-2015-0010-0002_attachment_1_extracted.txt`
-      * The `docket` folder contains th JSON file for the docket in a file named with the docket ID, such `USTR-2015-0010.json`.
-      * The `documents` folder contains one JSON for each document along with the HTM file containing the docket text.  Both files are named using the document ID such as `USTR-2015-0010-0001.json` and `USTR-2015-0010-0001_content.htm`.
-      * The `documents_extracted_text` folder contains a subdirectory for each extraction tool used. In this example, only the tool  `pikepdf` was used.
-          * The `pikepdf` directory contains one text file for each attachment with extracted text.  These files are named with the document id, document number, and the word `extracted` such as `USTR-2015-0010-0001_content_extracted.txt`
+## Derived Data Structure
+
+The `derived-data` directory contains outputs of processing pipelines, such as generated summaries, named entity recognition, and extracted text.
+
+```
+derived-data
+└── <agency>
+    └── <docket id>
+        ├── mirrulations
+        │   ├── ai_summary
+        │   │   ├── comment
+        │   │   ├── comment_attachments
+        │   │   └── document
+        │   ├── entities
+        │   │   ├── comment
+        │   │   ├── comment_attachment
+        │   │   └── document
+        │   └── extracted_txt
+        │       └── comment_attachment
+        │           └── <comment id>_attachment_<counter>_extracted.txt
+        ├── MoravianResearch
+        │   └── <projectName>
+        │       ├── comment
+        │       ├── docket
+        │       └── document
+        └── trotterf
+            └── <projectName>
+                └── <fileType>
+                    └── <fileID>.txt
+```
+
+---
+
+
+## Example and Explanation
+
+### Example: `USTR-2015-0010` in Context of Full Structure
+
+```
+raw-data
+└── USTR
+    └── USTR-2015-0010
+        ├── binary-USTR-2015-0010
+        │   ├── comments_attachments
+        │   │   ├── USTR-2015-0010-0002_attachment_1.pdf
+        │   │   ├── USTR-2015-0010-0003_attachment_1.pdf
+        │   └── documents_attachments
+        │       ├── USTR-2015-0010-0001_attachment_1.pdf
+        │       ├── USTR-2015-0010-0016_attachment_1.doc
+        └── text-USTR-2015-0010
+            ├── comments
+            │   ├── USTR-2015-0010-0002.json
+            │   ├── USTR-2015-0010-0003.json
+            ├── docket
+            │   └── USTR-2015-0010.json
+            ├── documents
+            │   ├── USTR-2015-0010-0001.json
+            │   ├── USTR-2015-0010-0001_content.htm
+            │   ├── USTR-2015-0010-0016.json
+```
+
+```
+derived-data
+└── USTR
+    └── USTR-2015-0010
+        ├── mirrulations
+        │   ├── summary
+        │   │   ├── comment
+        │   │   ├── comment_attachments
+        │   │   └── document
+        │   ├── entities
+        │   │   ├── comment
+        │   │   ├── comment_attachment
+        │   │   └── document
+        │   └── extracted_txt
+        │       └── comment_attachment
+        │           ├── USTR-2015-0010-0002_attachment_1_extracted.txt
+        │           └── USTR-2015-0010-0003_attachment_1_extracted.txt
+```
+
+### Explanation
+
+* At the root level, there are two top-level directories: `raw-data` and `derived-data`.
+  * Inside `raw-data`, data is organized first by the agency (e.g., `USTR`) and then by docket ID (e.g., `USTR-2015-0010`).
+    * Each docket folder has two subfolders: `binary-<docket id>` and `text-<docket id>`.
+    * The `binary-<docket id>` folder contains:
+      * `comments_attachments`: Files named using the comment ID and attachment number, e.g., `USTR-2015-0010-0002_attachment_1.pdf`.
+      * `documents_attachments`: Files named using the document ID and attachment number, e.g., `USTR-2015-0010-0016_attachment_1.doc`.
+    * The `text-<docket id>` folder contains:
+      * `comments`: JSON files named by comment ID, e.g., `USTR-2015-0010-0002.json`.
+      * `docket`: A JSON file named after the docket ID, e.g., `USTR-2015-0010.json`.
+      * `documents`: Includes metadata and content files, such as `USTR-2015-0010-0001.json` and `USTR-2015-0010-0001_content.htm`.
+
+  * Inside `derived-data`, the structure mirrors `raw-data` starting from the agency and docket ID, but contains generated outputs.
+    * Subfolders include `mirrulations`, `MoravianResearch`, and `trotterf`, which are organized by project or processing pipeline.
+    * Under `mirrulations`, you’ll find:
+      * `summary`, `entities`, and `extracted_txt`, each of which is broken down by type (comment, comment_attachment, document).
+      * Extracted text files follow the naming convention `<comment id>_attachment_<counter>_extracted.txt`.
+
+## Summary
+
+- **Top-Level Separation**: `raw-data` for original unprocessed content, `derived-data` for all post-processing artifacts.
+- **Agency and Docket Organization**: Both structures mirror agency/docketId hierarchy for consistency.
+- **Binary/Text Separation**: In `raw-data`, attachments and text content are split for cleaner access and processing.
+- **Structured Outputs**: In `derived-data`, various project folders house data outputs for derived information like summaries and text extraction(comment attachments).

@@ -125,7 +125,7 @@ We will use AWS Glue to extract the comments from the `DEA-2024-0059` docket, tr
 
 * Click on the node and configure it to use the data from the `mirrulations` bucket
 
-  * Set the S3 URL to `s3://mirrulations/DEA/DEA-2024-0059/text-DEA-2024-0059/comments`.
+  * Set the S3 URL to `s3://mirrulations/raw-data/DEA/DEA-2024-0059/text-DEA-2024-0059/comments`.
   
   * Set the "Data Format" to "JSON."
   ![S3 Node Configuration](graphics/s3sourceConfiguration.png)
